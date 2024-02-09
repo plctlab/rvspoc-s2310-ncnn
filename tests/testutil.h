@@ -57,6 +57,10 @@ public:
 #define TEST_LAYER_DISABLE_GPU_TESTING        (1 << 2)
 #define TEST_LAYER_ENABLE_FORCE_INPUT_PACK8   (1 << 3)
 
+#if NCNN_RVV
+#define TEST_LAYER_ENABLE_FORCE_INPUT_PACKVLENB (1 << 4)
+#endif // NCNN_RVV
+
 static float RandomFloat(float a = -1.2f, float b = 1.2f)
 {
     float random = ((float)RAND()) / (float)uint64_t(-1); //RAND_MAX;
@@ -564,6 +568,11 @@ int test_layer_cpu(int typeindex, const ncnn::ParamDict& pd, const std::vector<n
 
             if (flag & TEST_LAYER_ENABLE_FORCE_INPUT_PACK8)
                 dst_elempack = 8;
+
+#if NCNN_RVV
+            if (flag & TEST_LAYER_ENABLE_FORCE_INPUT_PACKVLENB)
+                dst_elempack = ncnn::cpu_riscv_vlenb();
+#endif
 
             ncnn::Mat a4_packed;
             ncnn::convert_packing(a4[i], a4_packed, dst_elempack, opt);
