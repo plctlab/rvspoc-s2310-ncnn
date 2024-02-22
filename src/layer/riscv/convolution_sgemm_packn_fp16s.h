@@ -260,8 +260,9 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         }
     }
 
+    int p = 0;
 #pragma omp parallel for num_threads(opt.num_threads)
-    for (int p = 0; p + 1 < outch; p += 2)
+    for (; p + 1 < outch; p += 2)
     {
         __fp16* outptr0 = top_blob.channel(p);
         __fp16* outptr1 = top_blob.channel(p + 1);
@@ -510,7 +511,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         }
     }
 #pragma omp parallel for num_threads(opt.num_threads)
-    for (int p = 0; p < outch; p++)
+    for (; p < outch; p++)
     {
         __fp16* outptr0 = top_blob.channel(p);
 
