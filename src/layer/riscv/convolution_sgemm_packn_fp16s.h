@@ -346,16 +346,16 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
                 kptr1 += packn;
             }
 
-            vse16_v_f16m1(outptr0, _sum00, vl);
-            vse16_v_f16m1(outptr0 + packn, _sum01, vl);
+            vse16_v_f16m1(outptr0 + packn * 0, _sum00, vl);
+            vse16_v_f16m1(outptr0 + packn * 1, _sum01, vl);
             vse16_v_f16m1(outptr0 + packn * 2, _sum02, vl);
             vse16_v_f16m1(outptr0 + packn * 3, _sum03, vl);
             vse16_v_f16m1(outptr0 + packn * 4, _sum04, vl);
             vse16_v_f16m1(outptr0 + packn * 5, _sum05, vl);
             vse16_v_f16m1(outptr0 + packn * 6, _sum06, vl);
             vse16_v_f16m1(outptr0 + packn * 7, _sum07, vl);
-            vse16_v_f16m1(outptr1, _sum10, vl);
-            vse16_v_f16m1(outptr1 + packn, _sum11, vl);
+            vse16_v_f16m1(outptr1 + packn * 0, _sum10, vl);
+            vse16_v_f16m1(outptr1 + packn * 1, _sum11, vl);
             vse16_v_f16m1(outptr1 + packn * 2, _sum12, vl);
             vse16_v_f16m1(outptr1 + packn * 3, _sum13, vl);
             vse16_v_f16m1(outptr1 + packn * 4, _sum14, vl);
@@ -368,7 +368,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         }
         for (; i + 3 < size; i += 4)
         {
-            const __fp16* tmpptr = tmp.channel(i / 8);
+            const __fp16* tmpptr = tmp.channel(i / 8 + (i % 8) / 4);
             const __fp16* kptr0 = kernel.channel(p);
             const __fp16* kptr1 = kernel.channel(p + 1);
 
@@ -416,12 +416,12 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
                 kptr1 += packn;
             }
 
-            vse16_v_f16m1(outptr0, _sum00, vl);
-            vse16_v_f16m1(outptr0 + packn, _sum01, vl);
+            vse16_v_f16m1(outptr0 + packn * 0, _sum00, vl);
+            vse16_v_f16m1(outptr0 + packn * 1, _sum01, vl);
             vse16_v_f16m1(outptr0 + packn * 2, _sum02, vl);
             vse16_v_f16m1(outptr0 + packn * 3, _sum03, vl);
-            vse16_v_f16m1(outptr1, _sum10, vl);
-            vse16_v_f16m1(outptr1 + packn, _sum11, vl);
+            vse16_v_f16m1(outptr1 + packn * 0, _sum10, vl);
+            vse16_v_f16m1(outptr1 + packn * 1, _sum11, vl);
             vse16_v_f16m1(outptr1 + packn * 2, _sum12, vl);
             vse16_v_f16m1(outptr1 + packn * 3, _sum13, vl);
 
@@ -430,7 +430,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         }
         for (; i + 1 < size; i += 2)
         {
-            const __fp16* tmpptr = tmp.channel(i / 8);
+            const __fp16* tmpptr = tmp.channel(i / 8 + (i % 8) / 4 + (i % 4) / 2);
             const __fp16* kptr0 = kernel.channel(p);
             const __fp16* kptr1 = kernel.channel(p + 1);
 
@@ -464,10 +464,10 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
                 kptr1 += packn;
             }
 
-            vse16_v_f16m1(outptr0, _sum00, vl);
-            vse16_v_f16m1(outptr0 + packn, _sum01, vl);
-            vse16_v_f16m1(outptr1, _sum10, vl);
-            vse16_v_f16m1(outptr1 + packn, _sum11, vl);
+            vse16_v_f16m1(outptr0 + packn * 0, _sum00, vl);
+            vse16_v_f16m1(outptr0 + packn * 1, _sum01, vl);
+            vse16_v_f16m1(outptr1 + packn * 0, _sum10, vl);
+            vse16_v_f16m1(outptr1 + packn * 1, _sum11, vl);
 
             outptr0 += packn * 2;
             outptr1 += packn * 2;
@@ -480,31 +480,30 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
 
             int nn = inch * maxk * packn; // inch always > 0
 
-            vfloat16m1_t _sum0 = vfmv_v_f_f16m1(0.f, vl);
-            vfloat16m1_t _sum1 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum00 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum10 = vfmv_v_f_f16m1(0.f, vl);
 
 
             if (bias)
             {
-                _sum0 = vle16_v_f16m1(bias + p * packn, vl);
-                _sum1 = vle16_v_f16m1(bias + (p + 1) * packn, vl);
+                _sum00 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum10 = vle16_v_f16m1(bias + (p + 1) * packn, vl);
             }
 
             for (int j = 0; j < nn; j++)
             {
                 __fp16 val0 = *tmpptr++;
-                __fp16 val1 = *tmpptr++;
                 vfloat16m1_t _w0 = vle16_v_f16m1(kptr0, vl);
                 vfloat16m1_t _w1 = vle16_v_f16m1(kptr1, vl);
-                _sum0 = vfmacc_vf_f16m1(_sum0, val0, _w0, vl);
-                _sum1 = vfmacc_vf_f16m1(_sum1, val1, _w0, vl);
+                _sum00 = vfmacc_vf_f16m1(_sum00, val0, _w0, vl);
+                _sum10 = vfmacc_vf_f16m1(_sum10, val0, _w1, vl);
 
                 kptr0 += packn;
                 kptr1 += packn;
             }
 
-            vse16_v_f16m1(outptr0, _sum0, vl);
-            vse16_v_f16m1(outptr1, _sum1, vl);
+            vse16_v_f16m1(outptr0 + packn * 0, _sum00, vl);
+            vse16_v_f16m1(outptr1 + packn * 0, _sum10, vl);
 
             outptr0 += packn;
             outptr1 += packn;
