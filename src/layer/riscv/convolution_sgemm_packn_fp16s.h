@@ -41,7 +41,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         int remain_size_start = 0;
         int nn_size = size >> 3;
 
-        #pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(opt.num_threads)
         for (int ii = 0; ii < nn_size; ii++)
         {
             int i = remain_size_start + ii * 8;
@@ -121,7 +121,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         remain_size_start += nn_size << 3;
         nn_size = (size - remain_size_start) >> 2;
 
-        #pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(opt.num_threads)
         for (int ii = 0; ii < nn_size; ii++)
         {
             int i = remain_size_start + ii * 4;
@@ -185,7 +185,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
 
         nn_size = (size - remain_size_start) >> 1;
 
-        #pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(opt.num_threads)
         for (int ii = 0; ii < nn_size; ii++)
         {
             int i = remain_size_start + ii * 2;
@@ -239,7 +239,7 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
 
         remain_size_start += nn_size << 1;
 
-        #pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(opt.num_threads)
         for (int i = remain_size_start; i < size; i++)
         {
             __fp16* tmpptr = tmp.channel(i / 8 + (i % 8) / 4 + (i % 4) / 2 + i % 2);
@@ -260,12 +260,115 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
         }
     }
 
-    #pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(opt.num_threads)
     for (int p = 0; p < outch; p++)
     {
         __fp16* outptr0 = top_blob.channel(p);
 
         int i = 0;
+        for (; i + 15 < size; i += 16)
+        {
+            const __fp16* tmpptr0 = tmp.channel(i / 8);
+            const __fp16* tmpptr1 = tmp.channel(i / 8 + 1);
+            const __fp16* kptr0 = kernel.channel(p);
+
+            int nn = inch * maxk * packn; // inch always > 0
+
+            vfloat16m1_t _sum00 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum01 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum02 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum03 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum04 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum05 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum06 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum07 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum10 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum11 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum12 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum13 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum14 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum15 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum16 = vfmv_v_f_f16m1(0.f, vl);
+            vfloat16m1_t _sum17 = vfmv_v_f_f16m1(0.f, vl);
+
+            if (bias)
+            {
+                _sum00 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum01 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum02 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum03 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum04 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum05 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum06 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum07 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum10 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum11 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum12 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum13 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum14 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum15 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum16 = vle16_v_f16m1(bias + p * packn, vl);
+                _sum17 = vle16_v_f16m1(bias + p * packn, vl);
+            }
+
+            for (int j = 0; j < nn; j++)
+            {
+                __fp16 val00 = *tmpptr0++;
+                __fp16 val01 = *tmpptr0++;
+                __fp16 val02 = *tmpptr0++;
+                __fp16 val03 = *tmpptr0++;
+                __fp16 val04 = *tmpptr0++;
+                __fp16 val05 = *tmpptr0++;
+                __fp16 val06 = *tmpptr0++;
+                __fp16 val07 = *tmpptr0++;
+                __fp16 val10 = *tmpptr1++;
+                __fp16 val11 = *tmpptr1++;
+                __fp16 val12 = *tmpptr1++;
+                __fp16 val13 = *tmpptr1++;
+                __fp16 val14 = *tmpptr1++;
+                __fp16 val15 = *tmpptr1++;
+                __fp16 val16 = *tmpptr1++;
+                __fp16 val17 = *tmpptr1++;
+                vfloat16m1_t _w0 = vle16_v_f16m1(kptr0, vl);
+                _sum00 = vfmacc_vf_f16m1(_sum00, val00, _w0, vl);
+                _sum01 = vfmacc_vf_f16m1(_sum01, val01, _w0, vl);
+                _sum02 = vfmacc_vf_f16m1(_sum02, val02, _w0, vl);
+                _sum03 = vfmacc_vf_f16m1(_sum03, val03, _w0, vl);
+                _sum04 = vfmacc_vf_f16m1(_sum04, val04, _w0, vl);
+                _sum05 = vfmacc_vf_f16m1(_sum05, val05, _w0, vl);
+                _sum06 = vfmacc_vf_f16m1(_sum06, val06, _w0, vl);
+                _sum07 = vfmacc_vf_f16m1(_sum07, val07, _w0, vl);
+                _sum10 = vfmacc_vf_f16m1(_sum10, val10, _w0, vl);
+                _sum11 = vfmacc_vf_f16m1(_sum11, val11, _w0, vl);
+                _sum12 = vfmacc_vf_f16m1(_sum12, val12, _w0, vl);
+                _sum13 = vfmacc_vf_f16m1(_sum13, val13, _w0, vl);
+                _sum14 = vfmacc_vf_f16m1(_sum14, val14, _w0, vl);
+                _sum15 = vfmacc_vf_f16m1(_sum15, val15, _w0, vl);
+                _sum16 = vfmacc_vf_f16m1(_sum16, val16, _w0, vl);
+                _sum17 = vfmacc_vf_f16m1(_sum17, val17, _w0, vl);
+
+                kptr0 += packn;
+            }
+
+            vse16_v_f16m1(outptr0 + packn * 0x0, _sum00, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x1, _sum01, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x2, _sum02, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x3, _sum03, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x4, _sum04, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x5, _sum05, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x6, _sum06, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x7, _sum07, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x8, _sum10, vl);
+            vse16_v_f16m1(outptr0 + packn * 0x9, _sum11, vl);
+            vse16_v_f16m1(outptr0 + packn * 0xa, _sum12, vl);
+            vse16_v_f16m1(outptr0 + packn * 0xb, _sum13, vl);
+            vse16_v_f16m1(outptr0 + packn * 0xc, _sum14, vl);
+            vse16_v_f16m1(outptr0 + packn * 0xd, _sum15, vl);
+            vse16_v_f16m1(outptr0 + packn * 0xe, _sum16, vl);
+            vse16_v_f16m1(outptr0 + packn * 0xf, _sum17, vl);
+
+            outptr0 += packn * 16;
+        }
         for (; i + 7 < size; i += 8)
         {
             const __fp16* tmpptr = tmp.channel(i / 8);
@@ -451,7 +554,7 @@ static void convolution_im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_blob, Ma
     {
         const int gap = (w * stride_h - outw * stride_w) * packn;
 
-        #pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(opt.num_threads)
         for (int p = 0; p < inch; p++)
         {
             const Mat img = bottom_blob.channel(p);
