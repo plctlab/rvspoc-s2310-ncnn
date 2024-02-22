@@ -63,7 +63,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
     {
         // first blob
         const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for num_threads(opt.num_threads)
         for (int q = 0; q < channels; q++)
         {
             const float* ptr = bottom_blob.channel(q);
@@ -98,7 +98,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
         for (size_t b = 2; b < bottom_blobs.size(); b++)
         {
             const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const float* ptr = bottom_blob1.channel(q);
@@ -134,7 +134,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const float* ptr = bottom_blob.channel(q);
@@ -169,7 +169,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
             for (size_t b = 2; b < bottom_blobs.size(); b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const float* ptr = bottom_blob1.channel(q);
@@ -203,7 +203,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const float* ptr = bottom_blob.channel(q);
@@ -242,7 +242,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
             for (size_t b = 2; b < bottom_blobs.size(); b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const float* ptr = bottom_blob1.channel(q);
@@ -279,7 +279,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
     {
         // first blob
         const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for num_threads(opt.num_threads)
         for (int q = 0; q < channels; q++)
         {
             const float* ptr = bottom_blob.channel(q);
@@ -314,7 +314,7 @@ int Eltwise_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat
         for (size_t b = 2; b < bottom_blobs.size(); b++)
         {
             const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const float* ptr = bottom_blob1.channel(q);
@@ -370,7 +370,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         if (op_type == Operation_PROD)
         {
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob.channel(q);
@@ -397,7 +397,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
             if (coeffs.w == 0)
             {
                 const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob.channel(q);
@@ -422,7 +422,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
             else
             {
                 const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob.channel(q);
@@ -455,7 +455,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob.channel(q);
@@ -489,7 +489,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
     {
         // first blob
         const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for num_threads(opt.num_threads)
         for (int q = 0; q < channels; q++)
         {
             const __fp16* ptr = bottom_blob.channel(q);
@@ -515,7 +515,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         for (; b < bottom_blobs.size() - 1; b++)
         {
             const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob1.channel(q);
@@ -538,7 +538,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         for (; b < bottom_blobs.size(); b++)
         {
             const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob1.channel(q);
@@ -568,7 +568,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob.channel(q);
@@ -594,7 +594,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
             for (; b < bottom_blobs.size() - 1; b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob1.channel(q);
@@ -617,7 +617,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
             for (; b < bottom_blobs.size(); b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob1.channel(q);
@@ -645,7 +645,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob.channel(q);
@@ -675,7 +675,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
             for (; b < bottom_blobs.size() - 1; b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob1.channel(q);
@@ -700,7 +700,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
             for (; b < bottom_blobs.size(); b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob1.channel(q);
@@ -731,7 +731,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
     {
         // first blob
         const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for num_threads(opt.num_threads)
         for (int q = 0; q < channels; q++)
         {
             const __fp16* ptr = bottom_blob.channel(q);
@@ -757,7 +757,7 @@ int Eltwise_riscv::forward_fp16s(const std::vector<Mat>& bottom_blobs, std::vect
         for (; b < bottom_blobs.size(); b++)
         {
             const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob1.channel(q);
@@ -812,7 +812,7 @@ int Eltwise_riscv::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vec
     {
         // first blob
         const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+        #pragma omp parallel for num_threads(opt.num_threads)
         for (int q = 0; q < channels; q++)
         {
             const __fp16* ptr = bottom_blob.channel(q);
@@ -838,7 +838,7 @@ int Eltwise_riscv::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vec
         for (; b < bottom_blobs.size(); b++)
         {
             const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob1.channel(q);
@@ -865,7 +865,7 @@ int Eltwise_riscv::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vec
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob.channel(q);
@@ -891,7 +891,7 @@ int Eltwise_riscv::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vec
             for (; b < bottom_blobs.size(); b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob1.channel(q);
@@ -916,7 +916,7 @@ int Eltwise_riscv::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vec
         {
             // first blob
             const Mat& bottom_blob1 = bottom_blobs[1];
-#pragma omp parallel for num_threads(opt.num_threads)
+            #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
             {
                 const __fp16* ptr = bottom_blob.channel(q);
@@ -946,7 +946,7 @@ int Eltwise_riscv::forward_fp16sa(const std::vector<Mat>& bottom_blobs, std::vec
             for (; b < bottom_blobs.size(); b++)
             {
                 const Mat& bottom_blob1 = bottom_blobs[b];
-#pragma omp parallel for num_threads(opt.num_threads)
+                #pragma omp parallel for num_threads(opt.num_threads)
                 for (int q = 0; q < channels; q++)
                 {
                     const __fp16* ptr = bottom_blob1.channel(q);
