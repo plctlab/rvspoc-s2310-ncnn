@@ -510,7 +510,7 @@ int Padding_riscv::forward_bf16s_fp16s(const Mat& bottom_blob, Mat& top_blob, co
 int Padding_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const Option& opt) const
 {
 #if __riscv_vector
-    const int packn = csrr_vlenb() / 1;
+    const int packn = csrr_vlenb() / 2;
     const size_t vl = vsetvl_e8m1(packn);
 #endif
 

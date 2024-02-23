@@ -1120,7 +1120,7 @@ NCNN_FORCEINLINE void Mat::fill(vuint16m1_t _v)
 
 NCNN_FORCEINLINE void Mat::fill(vint8m1_t _v)
 {
-    const int packn = cpu_riscv_vlenb() / 1;
+    const int packn = cpu_riscv_vlenb() / 2;
     const size_t vl = vsetvl_e8m1(packn);
 
     int size = (int)total();
