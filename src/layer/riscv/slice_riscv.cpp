@@ -26,7 +26,6 @@ Slice_riscv::Slice_riscv()
     support_fp16_storage = true;
 #endif
 #endif // __riscv_vector
-
 }
 
 int Slice_riscv::forward(const std::vector<Mat>& bottom_blobs, std::vector<Mat>& top_blobs, const Option& opt) const
