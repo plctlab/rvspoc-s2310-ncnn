@@ -67,18 +67,15 @@ static void convdw3x3s1_pack8_int8_rvv(const Mat& bottom_blob, Mat& top_blob, co
                 vint8m1_t _r21 = vle8_v_i8m1(r2 + 8, vl);
                 vint8m1_t _r22 = vle8_v_i8m1(r2 + 16, vl);
 
-
                 vint16m2_t _s0 = vwmul_vv_i16m2(_r00, _k00, vl);
                 vint16m2_t _s1 = vwmul_vv_i16m2(_r01, _k01, vl);
                 vint16m2_t _s2 = vwmul_vv_i16m2(_r02, _k02, vl);
                 vint16m2_t _s3 = vwmul_vv_i16m2(_r10, _k10, vl);
 
-
                 _s0 = vwmacc_vv_i16m2(_s0, _r11, _k11, vl);
                 _s1 = vwmacc_vv_i16m2(_s1, _r12, _k12, vl);
                 _s2 = vwmacc_vv_i16m2(_s2, _r20, _k20, vl);
                 _s3 = vwmacc_vv_i16m2(_s3, _r21, _k21, vl);
-
 
                 vint16m2_t _s4 = vwmul_vv_i16m2(_r22, _k22, vl);
 
@@ -92,7 +89,6 @@ static void convdw3x3s1_pack8_int8_rvv(const Mat& bottom_blob, Mat& top_blob, co
                 _sum = vwadd_wv_i32m2(_sum, _s2_m1, vl);
                 _sum = vwadd_wv_i32m2(_sum, _s3_m1, vl);
                 _sum = vwadd_wv_i32m2(_sum, _s4_m1, vl);
-
 
                 vse32_v_i32m2(outptr0, _sum, vl);
                 r0 += 8;
@@ -161,7 +157,6 @@ static void convdw3x3s2_pack8_int8_rvv(const Mat& bottom_blob, Mat& top_blob, co
                 vint8m1_t _r21 = vle8_v_i8m1(r2 + 8, vl);
                 vint8m1_t _r22 = vle8_v_i8m1(r2 + 16, vl);
 
-
                 vint16m2_t _s0 = vwmul_vv_i16m2(_r00, _k00, vl);
                 vint16m2_t _s1 = vwmul_vv_i16m2(_r01, _k01, vl);
                 vint16m2_t _s2 = vwmul_vv_i16m2(_r02, _k02, vl);
@@ -186,7 +181,6 @@ static void convdw3x3s2_pack8_int8_rvv(const Mat& bottom_blob, Mat& top_blob, co
                 _sum = vwadd_wv_i32m2(_sum, _s4_m1, vl);
 
                 vse32_v_i32m2(outptr0, _sum, vl);
-
 
                 r0 += 16;
                 r1 += 16;
