@@ -610,7 +610,7 @@ int Slice_riscv::forward_bf16s_fp16s(const std::vector<Mat>& bottom_blobs, std::
             if (opt.use_packing_layout)
             {
 #if __riscv_zfh
-                out_elempack = support_fp16_storage && opt.use_fp16_arithmetic && slice % 8 == 0 ? 8 : slice % 4 == 0 ? 4 : 1;
+                out_elempack = support_fp16_storage && slice % 8 == 0 ? 8 : 1;
 #else
                 out_elempack = slice % 4 == 0 ? 4 : 1;
 #endif
@@ -668,7 +668,7 @@ int Slice_riscv::forward_bf16s_fp16s(const std::vector<Mat>& bottom_blobs, std::
             if (opt.use_packing_layout)
             {
 #if __riscv_zfh
-                out_elempack = support_fp16_storage && opt.use_fp16_arithmetic && slice % 8 == 0 ? 8 : slice % 4 == 0 ? 4 : 1;
+                out_elempack = support_fp16_storage && slice % 8 == 0 ? 8 : 1;
 #else
                 out_elempack = slice % 4 == 0 ? 4 : 1;
 #endif
@@ -896,7 +896,7 @@ int Slice_riscv::forward_bf16s_fp16s(const std::vector<Mat>& bottom_blobs, std::
             if (opt.use_packing_layout)
             {
 #if __riscv_zfh
-                out_elempack = support_fp16_storage && opt.use_fp16_arithmetic && slice % 8 == 0 ? 8 : slice % 4 == 0 ? 4 : 1;
+                out_elempack = support_fp16_storage && slice % 8 == 0 ? 8 : 1;
 #else
                 out_elempack = slice % 4 == 0 ? 4 : 1;
 #endif
