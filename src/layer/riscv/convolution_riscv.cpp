@@ -29,6 +29,8 @@
 
 namespace ncnn {
 
+#undef C906
+
 #include "convolution_sgemm.h"
 #include "convolution_winograd_transform.h"
 #include "convolution_winograd_dot.h"
