@@ -93,7 +93,8 @@ static void convolution_packnto1_fp16s_rvv(const Mat& bottom_blob, Mat& top_blob
                     sum += ss[i];
                 }
 #else
-                sum = vfmv_f_s_f32m1_f32(vfredusum_vs_f32m2_f32m1(vfloat32m1_t(), _sum, vfmv_s_f_f32m1(vfloat32m1_t(), sum, vl), vl));
+                vfloat32m1_t _sum_scala = vfmv_v_f_f32m1(sum, vl);
+                sum = vfmv_f_s_f32m1_f32(vfredusum_vs_f32m2_f32m1(_sum_scala, _sum, _sum_scala, vl));
 #endif
 
                 sum = activation_ss(sum, activation_type, activation_params);
