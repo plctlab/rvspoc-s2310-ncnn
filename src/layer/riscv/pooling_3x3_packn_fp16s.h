@@ -25,7 +25,7 @@ static void pooling3x3s2_max_packn_fp16s_rvv(const Mat& bottom_blob, Mat& top_bl
 
     const int tailstep = (w - 2 * outw + w) * packn;
 
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (int q = 0; q < inch; q++)
     {
         const Mat img0 = bottom_blob.channel(q);
@@ -83,7 +83,6 @@ static void pooling3x3s2_max_packn_fp16s_rvv(const Mat& bottom_blob, Mat& top_bl
                 vfloat16m1_t _max3_0 = vfmax_vv_f16m1(vfmax_vv_f16m1(_r06, _r07, vl), _r08, vl);
                 vfloat16m1_t _max3_1 = vfmax_vv_f16m1(vfmax_vv_f16m1(_r16, _r17, vl), _r18, vl);
                 vfloat16m1_t _max3_2 = vfmax_vv_f16m1(vfmax_vv_f16m1(_r26, _r27, vl), _r28, vl);
-
 
                 vfloat16m1_t _max0 = vfmax_vv_f16m1(vfmax_vv_f16m1(_max0_0, _max0_1, vl), _max0_2, vl);
                 vfloat16m1_t _max1 = vfmax_vv_f16m1(vfmax_vv_f16m1(_max1_0, _max1_1, vl), _max1_2, vl);

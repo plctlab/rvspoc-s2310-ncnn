@@ -24,7 +24,7 @@ static void conv3x3s1_pack1ton_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob,
 
     const __fp16* bias = _bias;
 
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (int p = 0; p < outch; p++)
     {
         Mat out0 = top_blob.channel(p);
@@ -303,7 +303,7 @@ static void conv3x3s2_pack1ton_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob,
     const __fp16* bias = _bias;
 
     int p = 0;
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (; p + 1 < outch; p += 2)
     {
         Mat out0 = top_blob.channel(p + 0);
@@ -572,7 +572,7 @@ static void conv3x3s2_pack1ton_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob,
             k1 += 9 * packn;
         }
     }
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (; p < outch; p++)
     {
         Mat out0 = top_blob.channel(p);

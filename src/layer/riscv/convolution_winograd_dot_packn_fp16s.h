@@ -34,7 +34,7 @@ static void convolution_winograd_dot_packn_fp16sa_rvv(Mat& bottom_blob_tm, int o
     else // if (tiles >= 1)
         bottom_blob_tm2.create(1 * inch, tiles, batch, 2u * packn, packn, opt.workspace_allocator);
 
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (int r = 0; r < batch; r++)
     {
         Mat tm2 = bottom_blob_tm2.channel(r);
@@ -169,7 +169,7 @@ static void convolution_winograd_dot_packn_fp16sa_rvv(Mat& bottom_blob_tm, int o
     top_blob_tm.create(tiles, batch, outch, 2u * packn, packn, opt.workspace_allocator);
 
     int p = 0;
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (; p + 2 < outch; p += 3)
     {
         __fp16* output0_tm = top_blob_tm.channel(p + 0);
@@ -446,7 +446,7 @@ static void convolution_winograd_dot_packn_fp16sa_rvv(Mat& bottom_blob_tm, int o
             }
         }
     }
-#pragma omp parallel for num_threads(opt.num_threads)
+    #pragma omp parallel for num_threads(opt.num_threads)
     for (; p < outch; p++)
     {
         __fp16* output0_tm = top_blob_tm.channel(p);
