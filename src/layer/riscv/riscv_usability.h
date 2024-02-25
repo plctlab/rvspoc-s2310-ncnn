@@ -249,8 +249,6 @@ static inline vint8m1_t float2int8(vfloat32m1_t _v0, vfloat32m1_t _v1, vfloat32m
     vint16m2_t _v16 = vnclip_wx_i16m2(_v32, 0, vl);
     vint8m1_t _v8 = vnclip_wx_i8m1(_v16, 0, vl);
     _v8 = vmax_vx_i8m1(_v8, -127, vl);
-    int8_t* i8 = (int8_t*)malloc(16 * sizeof(int8_t));
-    vse8_v_i8m1(i8, _v8, 16);
     return _v8;
 }
 
