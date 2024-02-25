@@ -377,8 +377,6 @@ static void convolution_winograd_dot_packn_fp16sa_rvv(Mat& bottom_blob_tm, int o
                 {
                     __fp16 val0 = *r0++;
                     __fp16 val1 = *r0++;
-                    __fp16 val2 = *r0++;
-                    __fp16 val3 = *r0++;
                     vfloat16m1_t _w0 = vle16_v_f16m1(k0, vl);
                     vfloat16m1_t _w1 = vle16_v_f16m1(k1, vl);
                     vfloat16m1_t _w2 = vle16_v_f16m1(k2, vl);
@@ -421,9 +419,6 @@ static void convolution_winograd_dot_packn_fp16sa_rvv(Mat& bottom_blob_tm, int o
                 for (int j = 0; j < nn; j++)
                 {
                     __fp16 val0 = *r0++;
-                    __fp16 val1 = *r0++;
-                    __fp16 val2 = *r0++;
-                    __fp16 val3 = *r0++;
                     vfloat16m1_t _w0 = vle16_v_f16m1(k0, vl);
                     vfloat16m1_t _w1 = vle16_v_f16m1(k1, vl);
                     vfloat16m1_t _w2 = vle16_v_f16m1(k2, vl);

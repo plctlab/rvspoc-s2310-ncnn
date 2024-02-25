@@ -372,10 +372,6 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
                 __fp16 val1 = *tmpptr++;
                 __fp16 val2 = *tmpptr++;
                 __fp16 val3 = *tmpptr++;
-                __fp16 val4 = *tmpptr++;
-                __fp16 val5 = *tmpptr++;
-                __fp16 val6 = *tmpptr++;
-                __fp16 val7 = *tmpptr++;
                 vfloat16m1_t _w0 = vle16_v_f16m1(kptr0, vl);
                 vfloat16m1_t _w1 = vle16_v_f16m1(kptr1, vl);
                 vfloat16m1_t _w2 = vle16_v_f16m1(kptr2, vl);
@@ -444,12 +440,6 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
             {
                 __fp16 val0 = *tmpptr++;
                 __fp16 val1 = *tmpptr++;
-                __fp16 val2 = *tmpptr++;
-                __fp16 val3 = *tmpptr++;
-                __fp16 val4 = *tmpptr++;
-                __fp16 val5 = *tmpptr++;
-                __fp16 val6 = *tmpptr++;
-                __fp16 val7 = *tmpptr++;
                 vfloat16m1_t _w0 = vle16_v_f16m1(kptr0, vl);
                 vfloat16m1_t _w1 = vle16_v_f16m1(kptr1, vl);
                 vfloat16m1_t _w2 = vle16_v_f16m1(kptr2, vl);
@@ -499,13 +489,6 @@ static void im2col_sgemm_packn_fp16sa_rvv(const Mat& bottom_im2col, Mat& top_blo
             for (int j = 0; j < nn; j++)
             {
                 __fp16 val0 = *tmpptr++;
-                __fp16 val1 = *tmpptr++;
-                __fp16 val2 = *tmpptr++;
-                __fp16 val3 = *tmpptr++;
-                __fp16 val4 = *tmpptr++;
-                __fp16 val5 = *tmpptr++;
-                __fp16 val6 = *tmpptr++;
-                __fp16 val7 = *tmpptr++;
                 vfloat16m1_t _w0 = vle16_v_f16m1(kptr0, vl);
                 vfloat16m1_t _w1 = vle16_v_f16m1(kptr1, vl);
                 vfloat16m1_t _w2 = vle16_v_f16m1(kptr2, vl);
