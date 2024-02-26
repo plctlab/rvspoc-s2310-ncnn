@@ -35,8 +35,6 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
         tmp.create(2 * maxk, inch, size / 2 + size % 2, 1u * packn, packn, opt.workspace_allocator);
     else
         tmp.create(maxk, inch, size, 1u * packn, packn, opt.workspace_allocator);
-    struct timeval start, end;
-    gettimeofday( &start, NULL );
     {
         int remain_size_start = 0;
         int nn_size = size >> 3;
@@ -147,11 +145,6 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             }
         }
     }
-    gettimeofday( &end, NULL );
-    // fprint to stderr, time unit is ms
-    fprintf(stderr, "im2col permute time: %f ms\n", (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0);
-
-    gettimeofday( &start, NULL );
     #pragma omp parallel for num_threads(opt.num_threads)
     for (int p = 0; p < outch; p++)
     {
@@ -391,9 +384,6 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             outptr0 += packn;
         }
     }
-    gettimeofday( &end, NULL );
-    // fprint to stderr, time unit is ms
-    fprintf(stderr, "im2col sgemm time: %f ms\n", (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0);
 }
 
 static void convolution_im2col_sgemm_packn_int8_rvv(const Mat& bottom_blob, Mat& top_blob, const Mat& kernel, int kernel_w, int kernel_h, int dilation_w, int dilation_h, int stride_w, int stride_h, const Option& opt)
