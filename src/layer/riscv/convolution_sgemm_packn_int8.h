@@ -167,7 +167,7 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum6 = vmv_v_x_i32m2(0, vl);
             vint32m2_t _sum7 = vmv_v_x_i32m2(0, vl);
             int j = 0;
-            for (; j + 1 < nn; j+=2)
+            for (; j + 1 < nn; j += 2)
             {
                 int8_t val0_0 = *tmpptr++;
                 int8_t val1_0 = *tmpptr++;
@@ -256,7 +256,7 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum3 = vmv_v_x_i32m2(0, vl);
 
             int j = 0;
-            for (; j < nn; j+=2)
+            for (; j < nn; j += 2)
             {
                 int8_t val0_0 = *tmpptr++;
                 int8_t val1_0 = *tmpptr++;
@@ -315,7 +315,7 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum1 = vmv_v_x_i32m2(0, vl);
 
             int j = 0;
-            for (; j < nn; j+=2)
+            for (; j < nn; j += 2)
             {
                 int8_t val0_0 = *tmpptr++;
                 int8_t val1_0 = *tmpptr++;
@@ -358,7 +358,7 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum0 = vmv_v_x_i32m2(0, vl);
 
             int j = 0;
-            for (; j < nn; j+=2)
+            for (; j < nn; j += 2)
             {
                 int8_t val0_0 = *tmpptr++;
                 int8_t val0_1 = *tmpptr++;
