@@ -35,6 +35,8 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
         tmp.create(2 * maxk, inch, size / 2 + size % 2, 1u * packn, packn, opt.workspace_allocator);
     else
         tmp.create(maxk, inch, size, 1u * packn, packn, opt.workspace_allocator);
+    struct timeval start, end;
+    gettimeofday( &start, NULL );
     {
         int remain_size_start = 0;
         int nn_size = size >> 3;
@@ -145,7 +147,11 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             }
         }
     }
+    gettimeofday( &end, NULL );
+    // fprint to stderr, time unit is ms
+    fprintf(stderr, "im2col permute time: %f ms\n", (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0);
 
+    gettimeofday( &start, NULL );
     #pragma omp parallel for num_threads(opt.num_threads)
     for (int p = 0; p < outch; p++)
     {
@@ -167,8 +173,50 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum5 = vmv_v_x_i32m2(0, vl);
             vint32m2_t _sum6 = vmv_v_x_i32m2(0, vl);
             vint32m2_t _sum7 = vmv_v_x_i32m2(0, vl);
+            int j = 0;
+            for (; j + 1 < nn; j+=2)
+            {
+                int8_t val0_0 = *tmpptr++;
+                int8_t val1_0 = *tmpptr++;
+                int8_t val2_0 = *tmpptr++;
+                int8_t val3_0 = *tmpptr++;
+                int8_t val4_0 = *tmpptr++;
+                int8_t val5_0 = *tmpptr++;
+                int8_t val6_0 = *tmpptr++;
+                int8_t val7_0 = *tmpptr++;
+                int8_t val0_1 = *tmpptr++;
+                int8_t val1_1 = *tmpptr++;
+                int8_t val2_1 = *tmpptr++;
+                int8_t val3_1 = *tmpptr++;
+                int8_t val4_1 = *tmpptr++;
+                int8_t val5_1 = *tmpptr++;
+                int8_t val6_1 = *tmpptr++;
+                int8_t val7_1 = *tmpptr++;
 
-            for (int j = 0; j < nn; j++)
+                vint8m1_t _w0 = vle8_v_i8m1(kptr0, vl * 2);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val0_0, vl), 0), vl);
+                _sum1 = vwadd_wv_i32m2(_sum1, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val1_0, vl), 0), vl);
+                _sum2 = vwadd_wv_i32m2(_sum2, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val2_0, vl), 0), vl);
+                _sum3 = vwadd_wv_i32m2(_sum3, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val3_0, vl), 0), vl);
+                _sum4 = vwadd_wv_i32m2(_sum4, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val4_0, vl), 0), vl);
+                _sum5 = vwadd_wv_i32m2(_sum5, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val5_0, vl), 0), vl);
+                _sum6 = vwadd_wv_i32m2(_sum6, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val6_0, vl), 0), vl);
+                _sum7 = vwadd_wv_i32m2(_sum7, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val7_0, vl), 0), vl);
+
+                vint8m1_t _w1 = vslidedown_vx_i8m1(_w0, _w0, 8, vl);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val0_1, vl), 0), vl);
+                _sum1 = vwadd_wv_i32m2(_sum1, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val1_1, vl), 0), vl);
+                _sum2 = vwadd_wv_i32m2(_sum2, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val2_1, vl), 0), vl);
+                _sum3 = vwadd_wv_i32m2(_sum3, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val3_1, vl), 0), vl);
+                _sum4 = vwadd_wv_i32m2(_sum4, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val4_1, vl), 0), vl);
+                _sum5 = vwadd_wv_i32m2(_sum5, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val5_1, vl), 0), vl);
+                _sum6 = vwadd_wv_i32m2(_sum6, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val6_1, vl), 0), vl);
+                _sum7 = vwadd_wv_i32m2(_sum7, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val7_1, vl), 0), vl);
+
+                kptr0 += 2 * packn;
+            }
+
+            for (; j < nn; j++)
             {
                 int8_t val0 = *tmpptr++;
                 int8_t val1 = *tmpptr++;
@@ -214,7 +262,34 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum2 = vmv_v_x_i32m2(0, vl);
             vint32m2_t _sum3 = vmv_v_x_i32m2(0, vl);
 
-            for (int j = 0; j < nn; j++)
+            int j = 0;
+            for (; j < nn; j+=2)
+            {
+                int8_t val0_0 = *tmpptr++;
+                int8_t val1_0 = *tmpptr++;
+                int8_t val2_0 = *tmpptr++;
+                int8_t val3_0 = *tmpptr++;
+                int8_t val0_1 = *tmpptr++;
+                int8_t val1_1 = *tmpptr++;
+                int8_t val2_1 = *tmpptr++;
+                int8_t val3_1 = *tmpptr++;
+                vint8m1_t _w0 = vle8_v_i8m1(kptr0, vl * 2);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val0_0, vl), 0), vl);
+                _sum1 = vwadd_wv_i32m2(_sum1, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val1_0, vl), 0), vl);
+                _sum2 = vwadd_wv_i32m2(_sum2, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val2_0, vl), 0), vl);
+                _sum3 = vwadd_wv_i32m2(_sum3, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val3_0, vl), 0), vl);
+
+                vint8m1_t _w1 = vslidedown_vx_i8m1(_w0, _w0, 8, vl);
+
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val0_1, vl), 0), vl);
+                _sum1 = vwadd_wv_i32m2(_sum1, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val1_1, vl), 0), vl);
+                _sum2 = vwadd_wv_i32m2(_sum2, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val2_1, vl), 0), vl);
+                _sum3 = vwadd_wv_i32m2(_sum3, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val3_1, vl), 0), vl);
+
+                kptr0 += packn * 2;
+            }
+
+            for (; j < nn; j++)
             {
                 int8_t val0 = *tmpptr++;
                 int8_t val1 = *tmpptr++;
@@ -246,7 +321,25 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             vint32m2_t _sum0 = vmv_v_x_i32m2(0, vl);
             vint32m2_t _sum1 = vmv_v_x_i32m2(0, vl);
 
-            for (int j = 0; j < nn; j++)
+            int j = 0;
+            for (; j < nn; j+=2)
+            {
+                int8_t val0_0 = *tmpptr++;
+                int8_t val1_0 = *tmpptr++;
+                int8_t val0_1 = *tmpptr++;
+                int8_t val1_1 = *tmpptr++;
+
+                vint8m1_t _w0 = vle8_v_i8m1(kptr0, vl * 2);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val0_0, vl), 0), vl);
+                _sum1 = vwadd_wv_i32m2(_sum1, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val1_0, vl), 0), vl);
+                vint8m1_t _w1 = vslidedown_vx_i8m1(_w0, _w0, 8, vl);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val0_1, vl), 0), vl);
+                _sum1 = vwadd_wv_i32m2(_sum1, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val1_1, vl), 0), vl);
+
+                kptr0 += packn * 2;
+            }
+
+            for (; j < nn; j++)
             {
                 int8_t val0 = *tmpptr++;
                 int8_t val1 = *tmpptr++;
@@ -271,7 +364,20 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
 
             vint32m2_t _sum0 = vmv_v_x_i32m2(0, vl);
 
-            for (int j = 0; j < nn; j++)
+            int j = 0;
+            for (; j < nn; j+=2)
+            {
+                int8_t val0_0 = *tmpptr++;
+                int8_t val0_1 = *tmpptr++;
+                vint8m1_t _w0 = vle8_v_i8m1(kptr0, vl * 2);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w0, val0_0, vl), 0), vl);
+                vint8m1_t _w1 = vslidedown_vx_i8m1(_w0, _w0, 8, vl);
+                _sum0 = vwadd_wv_i32m2(_sum0, vget_v_i16m2_i16m1(vwmul_vx_i16m2(_w1, val0_1, vl), 0), vl);
+
+                kptr0 += packn * 2;
+            }
+
+            for (; j < nn; j++)
             {
                 int8_t val0 = *tmpptr++;
                 vint8m1_t _w0 = vle8_v_i8m1(kptr0, vl);
@@ -285,6 +391,9 @@ static void im2col_sgemm_packn_int8_rvv(const Mat& bottom_im2col, Mat& top_blob,
             outptr0 += packn;
         }
     }
+    gettimeofday( &end, NULL );
+    // fprint to stderr, time unit is ms
+    fprintf(stderr, "im2col sgemm time: %f ms\n", (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_usec - start.tv_usec) / 1000.0);
 }
 
 static void convolution_im2col_sgemm_packn_int8_rvv(const Mat& bottom_blob, Mat& top_blob, const Mat& kernel, int kernel_w, int kernel_h, int dilation_w, int dilation_h, int stride_w, int stride_h, const Option& opt)

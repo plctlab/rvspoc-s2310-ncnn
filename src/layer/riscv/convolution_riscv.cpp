@@ -26,6 +26,7 @@
 #include "riscv_usability.h"
 
 #include "cpu.h"
+#include <sys/time.h>
 
 namespace ncnn {
 
