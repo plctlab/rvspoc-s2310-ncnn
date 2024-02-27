@@ -41,6 +41,7 @@ namespace ncnn {
 #include "convolution_packed_int8.h"
 #include "convolution_sgemm_packn_int8.h"
 #include "convolution_1x1_packn_int8.h"
+#include "convolution_3x3_pack1ton_int8.h"
 #include "convolution_winograd_transform_packn_int8.h"
 #include "convolution_winograd_dot_packn_int8.h"
 #include "convolution_3x3_packn_int8.h"
@@ -83,7 +84,7 @@ namespace ncnn {
 #include "convolution_3x3_pack1ton_fp16s.h"
 #include "convolution_7x7_pack1ton_fp16s.h"
 
-#endif
+#endif // __riscv_zfh
 #endif // __riscv_vector
 
 Convolution_riscv::Convolution_riscv()
@@ -271,27 +272,6 @@ int Convolution_riscv::forward(const Mat& bottom_blob, Mat& top_blob, const Opti
     if (opt.use_int8_inference && int8_scale_term)
     {
         return forward_int8(bottom_blob, top_blob, opt);
-        // Mat bottom_blob_unpacked = bottom_blob;
-        // if (bottom_blob.elempack != 1)
-        // {
-        //     Option opt_pack1 = opt;
-        //     opt_pack1.blob_allocator = opt.workspace_allocator;
-
-        //     convert_packing(bottom_blob, bottom_blob_unpacked, 1, opt_pack1);
-        // }
-
-        // Mat bottom_blob_unpacked_fp32 = bottom_blob_unpacked;
-        // if (bottom_blob_unpacked.elembits() == 16)
-        // {
-        //     Option opt_pack1 = opt;
-        //     opt_pack1.blob_allocator = opt.workspace_allocator;
-
-        //     cast_float16_to_float32(bottom_blob_unpacked, bottom_blob_unpacked_fp32, opt_pack1);
-        // }
-
-        // Option opt_unpacked = opt;
-        // opt_unpacked.use_packing_layout = false;
-        // return Convolution::forward_int8(bottom_blob_unpacked_fp32, top_blob, opt_unpacked);
     }
 #endif
 
@@ -585,8 +565,8 @@ int Convolution_riscv::forward(const Mat& bottom_blob, Mat& top_blob, const Opti
                 }
             }
 
-            // num_output
-            #pragma omp parallel for num_threads(opt.num_threads)
+// num_output
+#pragma omp parallel for num_threads(opt.num_threads)
             for (int p = 0; p < num_output; p++)
             {
                 float* outptr = top_blob.channel(p);
@@ -1168,9 +1148,23 @@ int Convolution_riscv::create_pipeline_int8(const Option& opt)
     }
 
     bool prefer_winograd = (opt.use_winograd23_convolution || opt.use_winograd43_convolution) && (num_input >= 8 && num_output >= 8) && kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1;
-
+    if (elempack == 1 && out_elempack == packn)
+    {
+        if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
+        {
+            convolution_transform_kernel_packed_int8_rvv(weight_data, weight_data_tm, num_input, num_output, kernel_w, kernel_h, elempack, out_elempack);
+        }
+        else if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
+        {
+            convolution_transform_kernel_packed_int8_rvv(weight_data, weight_data_tm, num_input, num_output, kernel_w, kernel_h, elempack, out_elempack);
+        }
+        else
+        {
+            convolution_transform_kernel_packed_int8(weight_data, weight_data_tm, num_input, num_output, kernel_w, kernel_h);
+        }
+    }
     // packn
-    if (elempack == packn && out_elempack == packn)
+    else if (elempack == packn && out_elempack == packn)
     {
         if (kernel_w == 1 && kernel_h == 1 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
         {
@@ -1273,7 +1267,22 @@ int Convolution_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const
     if (top_blob_int32.empty())
         return -100;
 
-    if (elempack == packn && out_elempack_int32 == packn)
+    if (elempack == 1 && out_elempack_int32 == packn)
+    {
+        if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
+        {
+            conv3x3s1_pack1ton_int8_rvv(bottom_blob_bordered, top_blob_int32, weight_data_tm, opt);
+        }
+        else if (kernel_w == 3 && kernel_h == 3 && dilation_w == 1 && dilation_h == 1 && stride_w == 2 && stride_h == 2)
+        {
+            conv3x3s2_pack1ton_int8_rvv(bottom_blob_bordered, top_blob_int32, weight_data_tm, opt);
+        }
+        else
+        {
+            convolution_packed_int8(bottom_blob_bordered, top_blob_int32, weight_data_tm, kernel_w, kernel_h, dilation_w, dilation_h, stride_w, stride_h, opt);
+        }
+    }
+    else if (elempack == packn && out_elempack_int32 == packn)
     {
         if (kernel_w == 1 && kernel_h == 1 && dilation_w == 1 && dilation_h == 1 && stride_w == 1 && stride_h == 1)
         {
