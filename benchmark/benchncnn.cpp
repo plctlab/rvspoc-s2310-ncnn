@@ -396,8 +396,8 @@ int main(int argc, char** argv)
     {
         // run user defined benchmark
         if (strcmp(model, "googlenet_int8") == 0
-            || strcmp(model, "resnet18_int8") == 0
-            || strcmp(model, "regnety_400m") == 0)
+                || strcmp(model, "resnet18_int8") == 0
+                || strcmp(model, "regnety_400m") == 0)
         {
             // special cases where winograd is slower
             benchmark(model, inputs, opt_no_winograd, false);
