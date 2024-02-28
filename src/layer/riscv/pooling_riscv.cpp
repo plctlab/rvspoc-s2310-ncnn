@@ -24,6 +24,9 @@
 
 namespace ncnn {
 
+#include "pooling_2x2_packn_fp16s.h"
+#include "pooling_3x3_packn_fp16s.h"
+
 Pooling_riscv::Pooling_riscv()
 {
 #if __riscv_vector
@@ -436,6 +439,17 @@ int Pooling_riscv::forward_fp16s(const Mat& bottom_blob, Mat& top_blob, const Op
         return -100;
 
     const int maxk = kernel_w * kernel_h;
+
+    if (pooling_type == PoolMethod_MAX && elempack == packn && kernel_w == 2 && kernel_h == 2 && stride_w == 2 && stride_h == 2)
+    {
+        pooling2x2s2_max_packn_fp16s_rvv(bottom_blob_bordered, top_blob, opt);
+        return 0;
+    }
+    if (pooling_type == PoolMethod_MAX && elempack == packn && kernel_w == 3 && kernel_h == 3 && stride_w == 2 && stride_h == 2)
+    {
+        pooling3x3s2_max_packn_fp16s_rvv(bottom_blob_bordered, top_blob, opt);
+        return 0;
+    }
 
     // kernel offsets
     std::vector<int> _space_ofs(maxk);

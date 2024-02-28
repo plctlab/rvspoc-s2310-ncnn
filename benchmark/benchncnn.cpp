@@ -383,6 +383,9 @@ int main(int argc, char** argv)
     opt.use_shader_pack8 = false;
     opt.use_image_storage = false;
 
+    ncnn::Option opt_no_winograd = opt;
+    opt_no_winograd.use_winograd_convolution = false;
+
     fprintf(stderr, "loop_count = %d\n", g_loop_count);
     fprintf(stderr, "num_threads = %d\n", num_threads);
     fprintf(stderr, "powersave = %d\n", ncnn::get_cpu_powersave());
@@ -392,7 +395,19 @@ int main(int argc, char** argv)
     if (model != 0)
     {
         // run user defined benchmark
-        benchmark(model, inputs, opt, false);
+        if (strcmp(model, "googlenet_int8.param") == 0
+                || strcmp(model, "resnet18_int8.param") == 0
+                || strcmp(model, "regnety_400m.param") == 0
+                || strcmp(model, "squeezenet_ssd_int8.param") == 0
+                || strcmp(model, "mobilenet_ssd_int8.param") == 0)
+        {
+            // special cases where winograd is slower
+            benchmark(model, inputs, opt_no_winograd, false);
+        }
+        else
+        {
+            benchmark(model, inputs, opt, false);
+        }
     }
     else
     {
@@ -423,41 +438,41 @@ int main(int argc, char** argv)
 
         benchmark("efficientnetv2_b0", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("regnety_400m", ncnn::Mat(224, 224, 3), opt);
+        benchmark("regnety_400m", ncnn::Mat(224, 224, 3), opt_no_winograd);
 
         benchmark("blazeface", ncnn::Mat(128, 128, 3), opt);
 
-        benchmark("googlenet", ncnn::Mat(224, 224, 3), opt);
+        // benchmark("googlenet", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("googlenet_int8", ncnn::Mat(224, 224, 3), opt);
+        benchmark("googlenet_int8", ncnn::Mat(224, 224, 3), opt_no_winograd);
 
-        benchmark("resnet18", ncnn::Mat(224, 224, 3), opt);
+        // benchmark("resnet18", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("resnet18_int8", ncnn::Mat(224, 224, 3), opt);
+        benchmark("resnet18_int8", ncnn::Mat(224, 224, 3), opt_no_winograd);
 
-        benchmark("alexnet", ncnn::Mat(227, 227, 3), opt);
+        // benchmark("alexnet", ncnn::Mat(227, 227, 3), opt);
 
-        benchmark("vgg16", ncnn::Mat(224, 224, 3), opt);
+        // benchmark("vgg16", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("vgg16_int8", ncnn::Mat(224, 224, 3), opt);
+        // benchmark("vgg16_int8", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("resnet50", ncnn::Mat(224, 224, 3), opt);
+        // benchmark("resnet50", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("resnet50_int8", ncnn::Mat(224, 224, 3), opt);
+        // benchmark("resnet50_int8", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("squeezenet_ssd", ncnn::Mat(300, 300, 3), opt);
+        // benchmark("squeezenet_ssd", ncnn::Mat(300, 300, 3), opt);
 
-        benchmark("squeezenet_ssd_int8", ncnn::Mat(300, 300, 3), opt);
+        benchmark("squeezenet_ssd_int8", ncnn::Mat(300, 300, 3), opt_no_winograd);
 
         benchmark("mobilenet_ssd", ncnn::Mat(300, 300, 3), opt);
 
-        benchmark("mobilenet_ssd_int8", ncnn::Mat(300, 300, 3), opt);
+        benchmark("mobilenet_ssd_int8", ncnn::Mat(300, 300, 3), opt_no_winograd);
 
-        benchmark("mobilenet_yolo", ncnn::Mat(416, 416, 3), opt);
+        // benchmark("mobilenet_yolo", ncnn::Mat(416, 416, 3), opt);
 
         benchmark("mobilenetv2_yolov3", ncnn::Mat(352, 352, 3), opt);
 
-        benchmark("yolov4-tiny", ncnn::Mat(416, 416, 3), opt);
+        // benchmark("yolov4-tiny", ncnn::Mat(416, 416, 3), opt);
 
         benchmark("nanodet_m", ncnn::Mat(320, 320, 3), opt);
 
@@ -465,7 +480,7 @@ int main(int argc, char** argv)
 
         benchmark("yolo-fastestv2", ncnn::Mat(352, 352, 3), opt);
 
-        benchmark("vision_transformer", ncnn::Mat(384, 384, 3), opt);
+        // benchmark("vision_transformer", ncnn::Mat(384, 384, 3), opt);
 
         benchmark("FastestDet", ncnn::Mat(352, 352, 3), opt);
     }

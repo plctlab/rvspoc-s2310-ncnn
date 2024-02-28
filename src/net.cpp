@@ -621,15 +621,15 @@ int NetPrivate::convert_layout(Mat& bottom_blob, const Layer* layer, const Optio
         // clang-format off
         // *INDENT-OFF*
 
-#if NCNN_ARM82
-        if (opt.use_fp16_storage && cpu_support_arm_asimdhp() && layer->support_fp16_storage)
+#if NCNN_VFPV4
+        if (opt.use_fp16_storage && cpu_support_arm_vfpv4() && layer->support_fp16_storage)
         {
             Mat bottom_blob_fp16;
             cast_float32_to_float16(bottom_blob, bottom_blob_fp16, opt);
             bottom_blob = bottom_blob_fp16;
         }
         else
-#endif // NCNN_ARM82
+#endif // NCNN_VFPV4
 #if NCNN_RVV
         if (opt.use_fp16_storage && cpu_support_riscv_v() && cpu_support_riscv_zfh() && layer->support_fp16_storage)
         {
@@ -708,7 +708,7 @@ int NetPrivate::convert_layout(Mat& bottom_blob, const Layer* layer, const Optio
             if (elembits == 8)
             {
 #if NCNN_RVV
-                const int packn = ncnn::cpu_riscv_vlenb() / 1;
+                const int packn = ncnn::cpu_riscv_vlenb() / 2;
                 if (elemcount % packn == 0)
                     dst_elempack = packn;
 #else
@@ -731,15 +731,15 @@ int NetPrivate::convert_layout(Mat& bottom_blob, const Layer* layer, const Optio
         // clang-format off
         // *INDENT-OFF*
 
-#if NCNN_ARM82
-        if (opt.use_fp16_storage && cpu_support_arm_asimdhp() && !layer->support_fp16_storage)
+#if NCNN_VFPV4
+        if (opt.use_fp16_storage && cpu_support_arm_vfpv4() && !layer->support_fp16_storage)
         {
             Mat bottom_blob_fp32;
             cast_float16_to_float32(bottom_blob, bottom_blob_fp32, opt);
             bottom_blob = bottom_blob_fp32;
         }
         else
-#endif // NCNN_ARM82
+#endif // NCNN_VFPV4
 #if NCNN_RVV
         if (opt.use_fp16_storage && cpu_support_riscv_v() && cpu_support_riscv_zfh() && !layer->support_fp16_storage)
         {
@@ -1347,8 +1347,11 @@ int Net::load_param(const DataReader& dr)
         // sanitize use options
         if (!d->vkdev->info.support_fp16_packed()) opt.use_fp16_packed = false;
         if (!d->vkdev->info.support_fp16_storage()) opt.use_fp16_storage = false;
+        if (!d->vkdev->info.support_fp16_uniform()) opt.use_fp16_uniform = false;
         if (!d->vkdev->info.support_fp16_arithmetic()) opt.use_fp16_arithmetic = false;
+        if (!d->vkdev->info.support_int8_packed()) opt.use_int8_packed = false;
         if (!d->vkdev->info.support_int8_storage()) opt.use_int8_storage = false;
+        if (!d->vkdev->info.support_int8_uniform()) opt.use_int8_uniform = false;
         if (!d->vkdev->info.support_int8_arithmetic()) opt.use_int8_arithmetic = false;
         if (!d->vkdev->info.support_cooperative_matrix()) opt.use_cooperative_matrix = false;
 
@@ -1359,6 +1362,9 @@ int Net::load_param(const DataReader& dr)
 
         // fp16a makes no sense when fp16 storage disabled
         if (!opt.use_fp16_packed && !opt.use_fp16_storage) opt.use_fp16_arithmetic = false;
+
+        // fp16 uniform makes no sense when fp16 arithmetic disabled
+        if (!opt.use_fp16_arithmetic) opt.use_fp16_uniform = false;
     }
     else
     {
@@ -1637,8 +1643,11 @@ int Net::load_param_bin(const DataReader& dr)
         // sanitize use options
         if (!d->vkdev->info.support_fp16_packed()) opt.use_fp16_packed = false;
         if (!d->vkdev->info.support_fp16_storage()) opt.use_fp16_storage = false;
+        if (!d->vkdev->info.support_fp16_uniform()) opt.use_fp16_uniform = false;
         if (!d->vkdev->info.support_fp16_arithmetic()) opt.use_fp16_arithmetic = false;
+        if (!d->vkdev->info.support_int8_packed()) opt.use_int8_packed = false;
         if (!d->vkdev->info.support_int8_storage()) opt.use_int8_storage = false;
+        if (!d->vkdev->info.support_int8_uniform()) opt.use_int8_uniform = false;
         if (!d->vkdev->info.support_int8_arithmetic()) opt.use_int8_arithmetic = false;
         if (!d->vkdev->info.support_cooperative_matrix()) opt.use_cooperative_matrix = false;
 
@@ -1649,6 +1658,9 @@ int Net::load_param_bin(const DataReader& dr)
 
         // fp16a makes no sense when fp16 storage disabled
         if (!opt.use_fp16_packed && !opt.use_fp16_storage) opt.use_fp16_arithmetic = false;
+
+        // fp16 uniform makes no sense when fp16 arithmetic disabled
+        if (!opt.use_fp16_arithmetic) opt.use_fp16_uniform = false;
     }
     else
     {
@@ -2679,8 +2691,8 @@ int Extractor::extract(int blob_index, Mat& feat, int type)
 
     // clang-format off
     // *INDENT-OFF*
-#if NCNN_ARM82
-    if (d->opt.use_fp16_storage && cpu_support_arm_asimdhp() && (type == 0))
+#if NCNN_VFPV4
+    if (d->opt.use_fp16_storage && cpu_support_arm_vfpv4() && (type == 0))
     {
         if (feat.elembits() == 16)
         {
@@ -2690,7 +2702,7 @@ int Extractor::extract(int blob_index, Mat& feat, int type)
         }
     }
     else
-#endif // NCNN_ARM82
+#endif // NCNN_VFPV4
 #if NCNN_BF16
     if (d->opt.use_bf16_storage && (type == 0))
     {

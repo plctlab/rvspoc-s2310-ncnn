@@ -348,7 +348,7 @@ int Flatten_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const Opt
     }
 
 #if __riscv_vector
-    const int packn = csrr_vlenb() / 1;
+    const int packn = csrr_vlenb() / 2; // packn should be 8
 #endif
 
     int w = bottom_blob.w;
@@ -394,7 +394,7 @@ int Flatten_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const Opt
     if (dims == 2)
     {
 #if __riscv_vector
-        if (elempack == packn) // out_elempack == packn
+        if (elempack == packn) // must add, because in innerproduct, elempack is 8
         {
             #pragma omp parallel for num_threads(opt.num_threads)
             for (int i = 0; i < h; i++)
@@ -405,7 +405,7 @@ int Flatten_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const Opt
                 int n = w * elempack;
                 while (n > 0)
                 {
-                    size_t vl = vsetvl_e8m1(n);
+                    size_t vl = elempack;
 
                     vint8m1_t _p = vle8_v_i8m1(ptr, vl);
                     vsse8_v_i8m1(outptr, w * sizeof(unsigned char), _p, vl);
@@ -422,7 +422,7 @@ int Flatten_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const Opt
     if (dims == 3 || dims == 4)
     {
 #if __riscv_vector
-        if (elempack == packn) // out_elempack == packn
+        if (elempack == packn) // must add, because in innerproduct, elempack is 8
         {
             #pragma omp parallel for num_threads(opt.num_threads)
             for (int q = 0; q < channels; q++)
@@ -433,7 +433,7 @@ int Flatten_riscv::forward_int8(const Mat& bottom_blob, Mat& top_blob, const Opt
                 int n = size * elempack;
                 while (n > 0)
                 {
-                    size_t vl = vsetvl_e8m1(n);
+                    size_t vl = elempack;
 
                     vint8m1_t _p = vle8_v_i8m1(ptr, vl);
                     vsse8_v_i8m1(outptr, size * sizeof(signed char), _p, vl);

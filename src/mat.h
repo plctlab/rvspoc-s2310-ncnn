@@ -138,6 +138,7 @@ public:
     void fill(vfloat32m1_t _v);
     void fill(vuint16m1_t _v);
     void fill(vint8m1_t _v);
+    void fill(vint32m2_t _v);
 #if __riscv_zfh
     void fill(vfloat16m1_t _v);
 #endif // __riscv_zfh
@@ -1120,7 +1121,7 @@ NCNN_FORCEINLINE void Mat::fill(vuint16m1_t _v)
 
 NCNN_FORCEINLINE void Mat::fill(vint8m1_t _v)
 {
-    const int packn = cpu_riscv_vlenb() / 1;
+    const int packn = cpu_riscv_vlenb() / 2;
     const size_t vl = vsetvl_e8m1(packn);
 
     int size = (int)total();
@@ -1128,6 +1129,20 @@ NCNN_FORCEINLINE void Mat::fill(vint8m1_t _v)
     for (int i = 0; i < size; i++)
     {
         vse8_v_i8m1(ptr, _v, vl);
+        ptr += packn;
+    }
+}
+
+NCNN_FORCEINLINE void Mat::fill(vint32m2_t _v)
+{
+    const int packn = cpu_riscv_vlenb() / 2;
+    const size_t vl = vsetvl_e32m2(packn);
+
+    int size = (int)total();
+    int* ptr = (int*)data;
+    for (int i = 0; i < size; i++)
+    {
+        vse32_v_i32m2(ptr, _v, vl);
         ptr += packn;
     }
 }

@@ -12,6 +12,8 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
+#define RVV_ASM_FTY
+
 static void convdw3x3s1_packn_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob, const Mat& kernel, const Mat& _bias, const Option& opt)
 {
     const int packn = csrr_vlenb() / 2;
@@ -61,6 +63,106 @@ static void convdw3x3s1_packn_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob, 
             int j = 0;
             for (; j + 1 < outw; j += 2)
             {
+#ifdef RVV_ASM_FTY
+                asm volatile(
+                    "vle.v          v4,             (%[r0])             \n\t"
+                    "mv             t1,             %[packn]            \n\t"
+                    "slli           t1,             t1,             1   \n\t" // shift left 1 (* 2)
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vle.v          v5,             (%[r0])             \n\t"
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vmv.v.v        v0,             %[_bias0]           \n\t"
+                    "vle.v          v6,             (%[r0])             \n\t"
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vmv.v.v        v1,             %[_bias0]           \n\t"
+                    "vle.v          v7,             (%[r0])             \n\t"
+                    "sub            %[r0],          %[r0],          t1  \n\t"
+                    "vmv.v.v        v2,             %[_bias0]           \n\t"
+                    "vmv.v.v        v3,             %[_bias0]           \n\t"
+                    "vfmacc.vv      v0,             %[_k00],        v4  \n\t"
+                    "vle.v          v8,             (%[r1])             \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k01],        v5  \n\t"
+                    "vle.v          v9,             (%[r1])             \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k02],        v6  \n\t"
+                    "vle.v          v10,             (%[r1])             \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k00],        v5  \n\t"
+                    "vle.v          v11,            (%[r1])             \n\t"
+                    "sub            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k01],        v6  \n\t"
+                    "vle.v          v12,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k02],        v7  \n\t"
+                    "vle.v          v13,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k10],        v8  \n\t"
+                    "vle.v          v14,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k11],        v9  \n\t"
+                    "vle.v          v15,            (%[r2])             \n\t"
+                    "sub            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k12],        v10 \n\t"
+                    "vle.v          v16,            (%[r3])             \n\t"
+                    "add            %[r3],          %[r3],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k10],        v9  \n\t"
+                    "vle.v          v17,            (%[r3])             \n\t"
+                    "add            %[r3],          %[r3],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k11],        v10 \n\t"
+                    "vle.v          v18,            (%[r3])             \n\t"
+                    "add            %[r3],          %[r3],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k12],        v11 \n\t"
+                    "vle.v          v19,            (%[r3])             \n\t"
+                    "sub            %[r3],          %[r3],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k20],        v12 \n\t"
+                    "vfmacc.vv      v0,             %[_k21],        v13 \n\t"
+                    "vfmacc.vv      v0,             %[_k22],        v14 \n\t"
+                    "vfmacc.vv      v1,             %[_k20],        v13 \n\t"
+                    "vfmacc.vv      v1,             %[_k21],        v14 \n\t"
+                    "vfmacc.vv      v1,             %[_k22],        v15 \n\t"
+                    "vse.v          v0,             (%[outptr0])        \n\t"
+                    "add            %[outptr0],     %[outptr0],     t1  \n\t"
+                    "vfmacc.vv      v2,             %[_k00],        v8  \n\t"
+                    "vfmacc.vv      v2,             %[_k01],        v9  \n\t"
+                    "vfmacc.vv      v2,             %[_k02],        v10 \n\t"
+                    "vse.v          v1,             (%[outptr0])        \n\t"
+                    "add            %[outptr0],     %[outptr0],     t1  \n\t"
+                    "vfmacc.vv      v2,             %[_k10],        v12 \n\t"
+                    "vfmacc.vv      v2,             %[_k11],        v13 \n\t"
+                    "vfmacc.vv      v2,             %[_k12],        v14 \n\t"
+                    "vfmacc.vv      v2,             %[_k20],        v16 \n\t"
+                    "vfmacc.vv      v2,             %[_k21],        v17 \n\t"
+                    "vfmacc.vv      v2,             %[_k22],        v18 \n\t"
+                    "vfmacc.vv      v3,             %[_k00],        v9  \n\t"
+                    "vfmacc.vv      v3,             %[_k01],        v10 \n\t"
+                    "vfmacc.vv      v3,             %[_k02],        v11 \n\t"
+                    "vse.v          v2,             (%[outptr1])        \n\t"
+                    "vfmacc.vv      v3,             %[_k10],        v13 \n\t"
+                    "vfmacc.vv      v3,             %[_k11],        v14 \n\t"
+                    "vfmacc.vv      v3,             %[_k12],        v15 \n\t"
+                    "vfmacc.vv      v3,             %[_k20],        v17 \n\t"
+                    "vfmacc.vv      v3,             %[_k21],        v18 \n\t"
+                    "vfmacc.vv      v3,             %[_k22],        v19 \n\t"
+                    "add            %[outptr1],     %[outptr1],     t1  \n\t"
+                    "vse.v          v3,             (%[outptr1])        \n\t"
+                    "add            %[outptr1],     %[outptr1],     t1  \n\t"
+
+                    : [r0] "+r"(r0), [r1] "+r"(r1), [r2] "+r"(r2), [r3] "+r"(r3),
+                    [outptr0] "+r"(outptr0), [outptr1] "+r"(outptr1)
+                    : [packn] "r"(packn), [_bias0] "vr"(_bias0),
+                    [_k00] "vr"(_k00), [_k01] "vr"(_k01), [_k02] "vr"(_k02),
+                    [_k10] "vr"(_k10), [_k11] "vr"(_k11), [_k12] "vr"(_k12),
+                    [_k20] "vr"(_k20), [_k21] "vr"(_k21), [_k22] "vr"(_k22)
+                    : "cc", "memory",
+                    "t1",
+                    "v0", "v1", "v2", "v3",     // sum00, sum01, sum10, sum11
+                    "v4", "v5", "v6", "v7",     // r00, r01, r02, r03
+                    "v8", "v9", "v10", "v11",   // r10, r11, r12, r13
+                    "v12", "v13", "v14", "v15", // r20, r21, r22, r23
+                    "v16", "v17", "v18", "v19"  // r30, r31, r32, r33
+                );
+#else
                 vfloat16m1_t _sum00 = _bias0;
                 vfloat16m1_t _sum01 = _bias0;
                 vfloat16m1_t _sum10 = _bias0;
@@ -138,6 +240,7 @@ static void convdw3x3s1_packn_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob, 
                 r1 += packn * 2;
                 r2 += packn * 2;
                 r3 += packn * 2;
+#endif
             }
             for (; j < outw; j++)
             {
@@ -348,6 +451,74 @@ static void convdw3x3s2_packn_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob, 
             int j = 0;
             for (; j + 1 < outw; j += 2)
             {
+#ifdef RVV_ASM_FTY
+                asm volatile(
+                    "vle.v          v2,             (%[r0])             \n\t"
+                    "mv             t1,             %[packn]            \n\t"
+                    "slli           t1,             t1,             1   \n\t" // shift left 1 (* 2)
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vle.v          v3,             (%[r0])             \n\t"
+                    "vmv.v.v        v0,             %[_bias0]           \n\t"
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vle.v          v4,             (%[r0])             \n\t"
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vmv.v.v        v1,             %[_bias0]           \n\t"
+                    "vle.v          v5,             (%[r0])             \n\t"
+                    "add            %[r0],          %[r0],          t1  \n\t"
+                    "vle.v          v6,             (%[r0])             \n\t"
+                    "vfmacc.vv      v0,             %[_k00],        v2  \n\t"
+                    "vle.v          v7,             (%[r1])             \n\t"
+                    "vfmacc.vv      v0,             %[_k01],        v3  \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k02],        v4  \n\t"
+                    "vle.v          v8,             (%[r1])             \n\t"
+                    "vfmacc.vv      v1,             %[_k00],        v4  \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k01],        v5  \n\t"
+                    "vle.v          v9,             (%[r1])             \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k02],        v6  \n\t"
+                    "vle.v          v10,            (%[r1])             \n\t"
+                    "add            %[r1],          %[r1],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k10],        v7  \n\t"
+                    "vle.v          v11,            (%[r1])             \n\t"
+                    "vfmacc.vv      v0,             %[_k11],        v8  \n\t"
+                    "vle.v          v12,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k12],        v9  \n\t"
+                    "vle.v          v13,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v1,             %[_k10],        v9  \n\t"
+                    "vle.v          v14,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k20],        v12 \n\t"
+                    "vle.v          v15,            (%[r2])             \n\t"
+                    "add            %[r2],          %[r2],          t1  \n\t"
+                    "vfmacc.vv      v0,             %[_k21],        v13 \n\t"
+                    "vle.v          v16,            (%[r2])             \n\t"
+                    "vfmacc.vv      v0,             %[_k22],        v14 \n\t"
+                    "vfmacc.vv      v1,             %[_k11],        v10 \n\t"
+                    "vfmacc.vv      v1,             %[_k12],        v11 \n\t"
+                    "vse.v          v0,             (%[outptr0])        \n\t"
+                    "vfmacc.vv      v1,             %[_k20],        v14 \n\t"
+                    "vfmacc.vv      v1,             %[_k21],        v15 \n\t"
+                    "vfmacc.vv      v1,             %[_k22],        v16 \n\t"
+                    "add            %[outptr0],     %[outptr0],     t1  \n\t"
+                    "vse.v          v1,             (%[outptr0])        \n\t"
+                    "add            %[outptr0],     %[outptr0],     t1  \n\t"
+                    : [r0] "+r"(r0), [r1] "+r"(r1), [r2] "+r"(r2), [outptr0] "+r"(outptr0)
+                    : [packn] "r"(packn), [_bias0] "vr"(_bias0),
+                    [_k00] "vr"(_k00), [_k01] "vr"(_k01), [_k02] "vr"(_k02),
+                    [_k10] "vr"(_k10), [_k11] "vr"(_k11), [_k12] "vr"(_k12),
+                    [_k20] "vr"(_k20), [_k21] "vr"(_k21), [_k22] "vr"(_k22)
+                    : "cc", "memory",
+                    "t1",
+                    "v0", "v1",                       // sum00, sum01
+                    "v2", "v3", "v4", "v5", "v6",     // r00, r01, r02, r03, r04
+                    "v7", "v8", "v9", "v10", "v11",   // r10, r11, r12, r13, r14
+                    "v12", "v13", "v14", "v15", "v16" // r20, r21, r22, r23, r24
+                );
+#else
                 vfloat16m1_t _sum00 = _bias0;
                 vfloat16m1_t _sum01 = _bias0;
 
@@ -398,6 +569,7 @@ static void convdw3x3s2_packn_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob, 
                 r0 += packn * 4;
                 r1 += packn * 4;
                 r2 += packn * 4;
+#endif
             }
             for (; j < outw; j++)
             {
@@ -442,3 +614,5 @@ static void convdw3x3s2_packn_fp16sa_rvv(const Mat& bottom_blob, Mat& top_blob, 
         }
     }
 }
+
+#undef RVV_ASM_FTY
