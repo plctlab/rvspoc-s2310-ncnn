@@ -370,7 +370,7 @@ int main(int argc, char** argv)
     opt.workspace_vkallocator = g_blob_vkallocator;
     opt.staging_vkallocator = g_staging_vkallocator;
 #endif // NCNN_VULKAN
-    opt.use_winograd_convolution = true;
+    opt.use_winograd_convolution = false;
     opt.use_sgemm_convolution = true;
     opt.use_int8_inference = true;
     opt.use_vulkan_compute = use_vulkan_compute;
@@ -383,9 +383,6 @@ int main(int argc, char** argv)
     opt.use_shader_pack8 = false;
     opt.use_image_storage = false;
 
-    ncnn::Option opt_no_winograd = opt;
-    opt_no_winograd.use_winograd_convolution = false;
-
     fprintf(stderr, "loop_count = %d\n", g_loop_count);
     fprintf(stderr, "num_threads = %d\n", num_threads);
     fprintf(stderr, "powersave = %d\n", ncnn::get_cpu_powersave());
@@ -395,17 +392,7 @@ int main(int argc, char** argv)
     if (model != 0)
     {
         // run user defined benchmark
-        if (strcmp(model, "googlenet_int8") == 0
-            || strcmp(model, "resnet18_int8") == 0
-            || strcmp(model, "regnety_400m") == 0)
-        {
-            // special cases where winograd is slower
-            benchmark(model, inputs, opt_no_winograd, false);
-        }
-        else
-        {
-            benchmark(model, inputs, opt, false);
-        }
+        benchmark(model, inputs, opt, false);
     }
     else
     {
@@ -436,17 +423,17 @@ int main(int argc, char** argv)
 
         benchmark("efficientnetv2_b0", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("regnety_400m", ncnn::Mat(224, 224, 3), opt_no_winograd);
+        benchmark("regnety_400m", ncnn::Mat(224, 224, 3), opt);
 
         benchmark("blazeface", ncnn::Mat(128, 128, 3), opt);
 
         benchmark("googlenet", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("googlenet_int8", ncnn::Mat(224, 224, 3), opt_no_winograd);
+        benchmark("googlenet_int8", ncnn::Mat(224, 224, 3), opt);
 
         benchmark("resnet18", ncnn::Mat(224, 224, 3), opt);
 
-        benchmark("resnet18_int8", ncnn::Mat(224, 224, 3), opt_no_winograd);
+        benchmark("resnet18_int8", ncnn::Mat(224, 224, 3), opt);
 
         benchmark("alexnet", ncnn::Mat(227, 227, 3), opt);
 
